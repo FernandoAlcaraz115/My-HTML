@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="CSS/styles.css">
+</head>
+<body>
+    <header>
+        <div class "container">Mi tiendita</div>
+        <h1 class="logo">Mi tiendita</h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#Carrito">Carrito</a></li>
+                <li><a href="#Categorias">Categorias</a></li>
+                <li><a href="#Contacto">Contacto</a></li>
+                <li><a href="#Nosotros">Nosotros</a></li>
+                <li><a href="#IniciarSesion">Iniciar Sesion</a></li>
+                <li><a href="#Registrarse">Registrarse</a></li>
+            </ul>
+        </nav>  
+    </header>
+    
+        <section id="inicio">
+            <div class="Slider">    
+                <div class="slide active">
+                    <img src="img/banner2.jpg" alt="Promoción 1">
+                </div>
+                <div class="slide">
+                    <img src="img/banner2.jpg" alt="Promoción 2">
+                </div>
+                <div class="slide">
+                    <img src="img/banner3.jpg" alt="Promoción 3">
+                </div>
+                <button class="prev" onclick="changeSlide(-1)">&#10090</button>
+                <button class="next" onclick="changeSlide(1)">&#10091</button>
+            </div>
+        </section>
+
+        <section id="Categorias" class="container">
+            <h2>Categorias</h2>
+            <div class="category-grid">
+                <div class="category-card" data-category="playera">
+                    <img src="img/playera.jpg" alt="Playeras">
+                    <h3>Playeras</h3>
+                </div>
+                <div class="category-card" data-category="sudadera">
+                    <img src="img/sudadera.jpg" alt="Sudaderas">
+                    <h3>Sudadera</h3>
+                </div>
+                <div class="category-card" data-category="pantalon">
+                    <img src="img/pantalon.jpg" alt="Pantalones">
+                    <h3>Pantalones</h3>
+                </div>
+                <div class="category-card" data-category="accesorios">
+                    <img src="img/accesorios.jpg" alt="Accesorios">
+                    <h3>Accesorios</h3>
+                </div>
+                <div class="category-card" data-category="calzado">
+                    <img src="img/calzado.jpg" alt="Calzado">
+                    <h3>Calzado</h3>
+                </div>
+            </div>
+        </section> 
+
+        <section id="productos" class="container">
+            <h2>Productos</h2>
+            <div id="product-grid" class="product-grid">
+            </div>
+        </section>
+
+        <section id="Nosotros" class="container">
+            <h2>Nosotros</h2>
+            <p>Somos una tienda en línea dedicada a ofrecer ropa y accesorios de moda para todas las edades. Nuestra misión es proporcionar productos de alta calidad a precios accesibles, con un enfoque en la satisfacción del cliente y la experiencia de compra.</p>
+        </section>
+
+        <section id="Contacto" class="container">
+            <h2>Contacto</h2>
+            <p>WhatsApp: <a href="https://wa.me/52 4434053416" target="_blank">4434053416</a></p>
+        <div class="map">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3853.563860749962!2d-101.18840038911105!3d19.722938581542767!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842d0e40be8f4d3b%3A0xf001c256ae856856!2sInstituto%20Tecnol%C3%B3gico%20de%20Morelia!5e1!3m2!1ses-419!2smx!4v1759857595573!5m2!1ses-419!2smx" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                width ="100%"
+                height="300"
+                style="border:0;"
+                allowfullscreen=""
+                loading=""
+            </iframe>
+        </div>
+        </section>
+        <footer>
+            <p>&copy; 2024 Mi tiendita. Todos los derechos reservados.</p>
+        </footer>  
+</body>
+</html>
