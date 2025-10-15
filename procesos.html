@@ -88,7 +88,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.65rem; /* Ajuste para mejor lectura */
             color: white;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -115,8 +115,10 @@
         <h1 class="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-2">Simulador de Planificación de Colas Multinivel (MLQ)</h1>
         
         <!-- Controles de Configuración -->
-        <div id="controls" class="bg-white p-6 rounded-xl shadow-custom mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="space-y-4">
+        <div id="controls" class="bg-white p-6 rounded-xl shadow-custom mb-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <!-- Columna 1: Añadir Proceso -->
+            <div class="space-y-4 col-span-1">
                 <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">Añadir Proceso</h2>
                 <input id="p-name" type="text" placeholder="Nombre (P1, P2...)" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" value="P">
                 <input id="p-burst" type="number" placeholder="Tiempo de Ráfaga (Burst)" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" min="1" value="10">
@@ -129,21 +131,24 @@
                 <button onclick="addProcess()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition duration-150">Añadir Proceso</button>
             </div>
 
-            <div class="space-y-4">
-                <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">Configuración del Planificador</h2>
-                <label for="quantum" class="block text-sm font-medium text-gray-700">Quantum (para Cola 0 - RR)</label>
-                <input id="quantum" type="number" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" min="1" value="3">
-                <p class="text-sm text-gray-500 mt-2">Cola 0 (Prioridad Alta): Round Robin (RR)</p>
-                <p class="text-sm text-gray-500">Cola 1 y 2 (Prioridades Media/Baja): FCFS</p>
-                <p class="text-xs text-red-500 mt-4">¡Recuerda! En MLQ, una cola superior siempre interrumpe a una inferior.</p>
+            <!-- Columna 2: Procesos Añadidos (Nuevo) -->
+            <div class="space-y-4 col-span-2">
+                <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">Procesos en Espera (Modificar)</h2>
+                <div id="process-list" class="space-y-2 max-h-52 overflow-y-auto p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <!-- Los procesos añadidos se mostrarán aquí -->
+                </div>
+                <button onclick="clearAllProcesses()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg transition duration-150 text-sm">Eliminar Todos los Procesos</button>
             </div>
 
-            <div class="space-y-4 flex flex-col justify-between">
+            <!-- Columna 3: Configuración y Control -->
+            <div class="space-y-4 col-span-1 flex flex-col justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">Control de Simulación</h2>
-                    <p class="text-sm text-gray-500 mb-4">Tiempo Actual: <span id="current-time" class="font-bold text-lg text-indigo-600">0</span></p>
+                    <label for="quantum" class="block text-sm font-medium text-gray-700 mt-2">Quantum (para Cola 0 - RR)</label>
+                    <input id="quantum" type="number" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" min="1" value="3">
+                    <p class="text-sm text-gray-500 mt-2">Tiempo Actual: <span id="current-time" class="font-bold text-lg text-indigo-600">0</span></p>
                 </div>
-                <div class="flex space-x-3">
+                <div class="flex space-x-3 mt-4">
                     <button id="run-btn" onclick="runSimulation()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-150 text-lg">
                         <span id="run-text">EJECUTAR</span>
                     </button>
@@ -257,26 +262,32 @@
          * Añade un nuevo proceso a la lista.
          */
         function addProcess() {
+            if (isRunning) {
+                console.warn("No se pueden añadir procesos mientras la simulación está corriendo.");
+                return;
+            }
+
             const nameInput = document.getElementById('p-name');
             const burstInput = document.getElementById('p-burst');
             const arrivalInput = document.getElementById('p-arrival');
             const queueInput = document.getElementById('p-queue');
 
-            const name = nameInput.value + processIdCounter;
+            // Genera el nombre usando el valor del input y el contador actual
+            const baseName = nameInput.value.trim();
+            const name = baseName + processIdCounter;
             const burst = parseInt(burstInput.value);
             const arrival = parseInt(arrivalInput.value);
             const queue = parseInt(queueInput.value);
 
-            if (burst <= 0 || arrival < 0 || name.trim() === '') {
-                // Usamos un simple mensaje en el console para la demo
-                console.error("Valores de entrada inválidos. Burst debe ser > 0 y Arrival >= 0.");
+            if (burst <= 0 || arrival < 0 || baseName === '') {
+                console.error("Valores de entrada inválidos. Burst debe ser > 0 y Arrival >= 0, y el nombre no puede estar vacío.");
                 return;
             }
 
             const newProcess = new Process(processIdCounter++, name, burst, arrival, queue);
             processes.push(newProcess);
 
-            // Ordena todos los procesos por tiempo de llegada (para la ejecución inicial)
+            // Ordena todos los procesos por tiempo de llegada
             processes.sort((a, b) => a.arrival - b.arrival);
 
             nameInput.value = 'P';
@@ -287,22 +298,74 @@
         }
 
         /**
-         * Inicializa la simulación y el estado de la UI.
+         * Elimina un proceso por su ID.
          */
-        function resetSimulation() {
-            stopSimulation();
-            processes = [];
+        function removeProcess(id) {
+            if (isRunning) {
+                console.warn("No se puede eliminar un proceso mientras la simulación está corriendo.");
+                return;
+            }
+            // Mantenemos solo los procesos cuyo ID no coincide
+            processes = processes.filter(p => p.id !== id);
+            
+            // Si eliminamos todos los procesos, el contador debe resetearse para que los nuevos empiecen en P1
+            if (processes.length === 0) {
+                processIdCounter = 1;
+            } else {
+                 // Si eliminamos, ordenamos por ID para mantener la consistencia en el display
+                 processes.sort((a, b) => a.id - b.id);
+            }
+            updateUI();
+        }
+
+        /**
+         * Elimina todos los procesos.
+         */
+        function clearAllProcesses() {
+            if (isRunning) {
+                console.warn("No se pueden eliminar procesos mientras la simulación está corriendo.");
+                return;
+            }
+            resetSimulation(true); // Usamos el flag 'clearAll'
+            updateUI();
+        }
+
+        /**
+         * Inicializa la simulación y el estado de la UI.
+         * @param {boolean} clearOnly Determines if the reset should clear processes (true) or just reset time (false)
+         */
+        function resetSimulation(clearOnly = false) {
+            // Asegura que se detiene la simulación y se restablecen los botones.
+            stopSimulation(); 
+            
+            if (clearOnly) {
+                processes = [];
+                processIdCounter = 1;
+            }
+
+            // Los procesos que no se hayan eliminado vuelven a su estado inicial
+            processes.forEach(p => {
+                p.remainingBurst = p.initialBurst;
+                p.completionTime = 0;
+                p.startTime = -1;
+                p.firstRun = true;
+            });
+            
             runningProcesses = [];
             completedProcesses = [];
-            processIdCounter = 1;
             currentTime = 0;
             currentProcess = null;
             timeInQuantum = 0;
             document.getElementById('current-time').textContent = 0;
-            document.getElementById('run-text').textContent = "EJECUTAR";
-            document.getElementById('run-btn').classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'bg-red-600');
-            document.getElementById('run-btn').classList.add('bg-green-600', 'hover:bg-green-700');
-            document.getElementById('run-btn').disabled = false;
+            
+            // Restablecer el botón a EJECUTAR y color verde, si hay procesos cargados o si el estado es limpio
+            if (processes.length === 0 || completedProcesses.length < processes.length) {
+                document.getElementById('run-text').textContent = "EJECUTAR";
+                document.getElementById('run-btn').classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'bg-red-600');
+                document.getElementById('run-btn').classList.add('bg-green-600', 'hover:bg-green-700');
+                document.getElementById('run-btn').disabled = false;
+            }
+            
             clearGantt();
             updateUI();
         }
@@ -423,7 +486,6 @@
          */
         function runSimulation() {
             if (processes.length === 0) {
-                // Usamos un simple mensaje en el console para la demo
                 console.log("Por favor, añade al menos un proceso para iniciar la simulación.");
                 return;
             }
@@ -438,7 +500,7 @@
                 }
                 isRunning = true;
                 document.getElementById('run-text').textContent = "PAUSAR";
-                document.getElementById('run-btn').classList.remove('bg-green-600', 'hover:bg-green-700');
+                document.getElementById('run-btn').classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-red-600');
                 document.getElementById('run-btn').classList.add('bg-yellow-600', 'hover:bg-yellow-700');
                 
                 // Intervalo de 500ms para visualizar el paso a paso
@@ -453,30 +515,65 @@
             clearInterval(simulationInterval);
             isRunning = false;
             
+            // Obtener el botón para manipular su estado
+            const runBtn = document.getElementById('run-btn');
+
             if (completedProcesses.length === processes.length && processes.length > 0) {
-                // Finalizado
+                // Estado: FINALIZADO
                 document.getElementById('run-text').textContent = "TERMINADO";
-                document.getElementById('run-btn').classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
-                document.getElementById('run-btn').classList.add('bg-red-600');
-                document.getElementById('run-btn').disabled = true;
+                runBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'bg-green-600', 'hover:bg-green-700');
+                runBtn.classList.add('bg-red-600');
+                runBtn.disabled = true; // Desactivar el botón
                 updateResults();
             } else if (processes.length > 0) {
-                // Pausado
+                // Estado: PAUSADO (o al inicio de la simulación antes de correr)
                 document.getElementById('run-text').textContent = "REANUDAR";
-                document.getElementById('run-btn').classList.remove('bg-green-600', 'hover:bg-green-700');
-                document.getElementById('run-btn').classList.add('bg-yellow-600', 'hover:bg-yellow-700');
-                document.getElementById('run-btn').disabled = false;
+                runBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-red-600');
+                runBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                runBtn.disabled = false; // Asegurar que está habilitado para reanudar
             } else {
-                // Estado inicial/reiniciado
+                // Estado: INICIAL/REINICIADO sin procesos
                 document.getElementById('run-text').textContent = "EJECUTAR";
-                document.getElementById('run-btn').classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'bg-red-600');
-                document.getElementById('run-btn').classList.add('bg-green-600', 'hover:bg-green-700');
-                document.getElementById('run-btn').disabled = false;
+                runBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700', 'bg-red-600');
+                runBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                runBtn.disabled = false; 
             }
         }
 
         // --- 5. ACTUALIZACIÓN DE INTERFAZ DE USUARIO (UI) ---
+        
+        /**
+         * Actualiza la lista de procesos añadidos en el panel de control.
+         */
+        function updateAddedProcessList() {
+            const listContainer = document.getElementById('process-list');
+            listContainer.innerHTML = '';
+            
+            if (processes.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-400 text-sm italic p-2 text-center">No hay procesos configurados.</p>';
+                return;
+            }
+            
+            const queueNames = ['Cola 0 (Alta)', 'Cola 1 (Media)', 'Cola 2 (Baja)'];
 
+            processes.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-white rounded-md border border-gray-100 shadow-sm';
+                item.innerHTML = `
+                    <div class="text-sm font-medium text-gray-800">
+                        <span class="font-extrabold text-blue-600">${p.name}</span>
+                        <span class="text-xs text-gray-500 ml-2">B:${p.initialBurst} A:${p.arrival}</span>
+                        <span class="text-xs font-semibold ml-2" style="color: ${p.color};">${queueNames[p.queue]}</span>
+                    </div>
+                    <button onclick="removeProcess(${p.id})" class="ml-2 text-red-500 hover:text-red-700 text-xs font-bold transition duration-150 p-1 rounded-full bg-red-50 hover:bg-red-100" title="Eliminar proceso">
+                        <!-- Icono de basura (inline SVG) -->
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.86 12.04A2 2 0 0116.14 21H7.86a2 2 0 01-1.99-1.96L5 7m4 0V4a1 1 0 011-1h4a1 1 0 011 1v3M9 11v6m6-6v6m-3-6v6"></path></svg>
+                    </button>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+        
         /**
          * Actualiza la vista de las colas de procesos.
          */
@@ -514,11 +611,14 @@
             const color = process ? process.color : '#9ca3af'; // Gris para CPU Inactiva (IDLE)
             const name = process ? process.name : 'IDLE';
 
-            // Comprobar si el último bloque ya era el mismo proceso (para consolidar)
+            // *** CORRECCIÓN CRÍTICA: Aumentar el ancho de los bloques para legibilidad ***
+            const blockWidth = 40; // 40px por unidad de tiempo (antes 20)
+            // *** FIN DE CORRECCIÓN ***
+            
+            // Obtenemos el último bloque (si existe)
             const lastBlock = ganttBarWrapper.lastChild;
-            const blockWidth = 20; // 20px por unidad de tiempo
 
-            if (lastBlock && lastBlock.dataset.processId === (process ? process.id : 'IDLE')) {
+            if (lastBlock && lastBlock.dataset.processId === (process ? process.id.toString() : 'IDLE')) {
                 // Consolidar: aumentar el ancho del bloque anterior
                 const currentWidth = parseFloat(lastBlock.style.width.replace('px', ''));
                 lastBlock.style.width = `${currentWidth + blockWidth}px`;
@@ -531,7 +631,7 @@
                 block.style.backgroundColor = color;
                 block.style.width = `${blockWidth}px`; 
                 block.title = `${name} | T: ${startTime} - ${startTime + duration}`;
-                block.dataset.processId = process ? process.id : 'IDLE';
+                block.dataset.processId = process ? process.id.toString() : 'IDLE'; // Convertir ID a string para consistencia
                 block.dataset.startTime = startTime;
 
                 ganttBarWrapper.appendChild(block);
@@ -588,7 +688,7 @@
                 }
 
                 resultsBody.innerHTML += `
-                    <tr class="${isCompleted ? 'bg-green-50' : (p.remainingBurst < p.initialBurst ? 'bg-yellow-50' : 'bg-red-50')}">
+                    <tr class="${isCompleted ? 'bg-green-50' : (p.remainingBurst < p.initialBurst ? 'bg-yellow-50' : 'bg-white')}">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${p.name}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.queue} (${['RR','FCFS','FCFS'][p.queue]})</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.initialBurst}</td>
@@ -622,17 +722,16 @@
          */
         function updateUI() {
             updateQueues();
+            updateAddedProcessList(); // Nueva función de actualización
         }
 
         // --- 6. DATOS DE EJEMPLO (Para demo rápida) ---
         
         function loadDefaultProcesses() {
-            // Ejemplo para mostrar el poder de la prioridad estricta y el RR
-            // P-Int (P0) debe correr en RR. P-LoteA (P2) será interrumpido.
-            processes.push(new Process(processIdCounter++, 'P-Int', 8, 0, 0)); // Cola 0 (RR) - Interactivo (Alta Prio)
-            processes.push(new Process(processIdCounter++, 'P-LoteA', 25, 0, 2)); // Cola 2 (FCFS) - Lote (Baja Prio)
-            processes.push(new Process(processIdCounter++, 'P-Med', 10, 1, 1)); // Cola 1 (FCFS) - Medio
-            processes.push(new Process(processIdCounter++, 'P-Int2', 6, 2, 0)); // Cola 0 (RR) - Llega tarde, pero tiene alta prioridad
+            // Se usa el Caso 1 del script de demo para precargar
+            processes.push(new Process(processIdCounter++, 'P-IntA', 8, 0, 0)); // Cola 0 (RR) - Interactivo (Alta Prio)
+            processes.push(new Process(processIdCounter++, 'P-Lote', 20, 0, 2)); // Cola 2 (FCFS) - Lote (Baja Prio)
+            processes.push(new Process(processIdCounter++, 'P-IntB', 6, 0, 0)); // Cola 0 (RR)
 
             processes.sort((a, b) => a.arrival - b.arrival);
             updateUI();
