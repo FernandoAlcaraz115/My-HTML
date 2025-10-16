@@ -381,14 +381,16 @@
 
             // 2. Colas por Prioridad
             // Cola 0 (RR): Se ordena por ID para simular un orden de llegada justo dentro de la cola
-            const queue0 = arrivedProcesses.filter(p => p.queue === 0).sort((a, b) => a.id - b.id);
+            // NOTA: runningProcesses ya contiene el orden correcto de RR debido al manejo del Quantum
+            const queue0 = arrivedProcesses.filter(p => p.queue === 0); 
+            
             // Cola 1 y 2 (FCFS): Se ordenan por Tiempo de Llegada
             const queue1 = arrivedProcesses.filter(p => p.queue === 1).sort((a, b) => a.arrival - b.arrival);
             const queue2 = arrivedProcesses.filter(p => p.queue === 2).sort((a, b) => a.arrival - b.arrival);
 
             // 3. Aplicar Prioridad Estricta: Se atiende la cola más alta que no esté vacía.
             if (queue0.length > 0) {
-                return queue0[0]; // Retorna el primero de RR
+                return queue0[0]; // Retorna el primero de RR (que es el que le toca por turno)
             } else if (queue1.length > 0) {
                 return queue1[0]; // Retorna el primero de FCFS
             } else if (queue2.length > 0) {
@@ -405,8 +407,19 @@
         function simulationStep() {
             // A. Mover procesos a la cola de "listos" cuando llegan
             processes.forEach(p => {
-                if (p.arrival === currentTime && !runningProcesses.includes(p) && !completedProcesses.includes(p)) {
-                    runningProcesses.push(p);
+                // Verificar si acaba de llegar (en este currentTime) y no está ya en la cola de listos
+                const isReady = p.arrival <= currentTime && p.remainingBurst > 0;
+                const notInRunning = !runningProcesses.some(rp => rp.id === p.id);
+
+                if (isReady && notInRunning && !completedProcesses.some(cp => cp.id === p.id)) {
+                    // Si el proceso acaba de llegar, lo añadimos a la lista de ejecución.
+                    // El orden se mantiene por el orden natural de llegada, el planificador se encarga de la prioridad
+                    runningProcesses.push(p); 
+                    
+                    // Asegurar que RR mantenga el orden por ID para nuevas llegadas en T=0
+                    if (p.queue === 0) {
+                        runningProcesses.sort((a, b) => a.id - b.id);
+                    }
                 }
             });
 
@@ -447,17 +460,22 @@
                     // Proceso Terminado
                     currentProcess.completionTime = currentTime + 1;
                     completedProcesses.push(currentProcess);
+                    // IMPORTANTE: Al terminar, eliminar de la lista de runningProcesses
                     runningProcesses = runningProcesses.filter(p => p.id !== currentProcess.id);
                     currentProcess = null; // Liberar la CPU
                     timeInQuantum = 0;
                     
                 } else if (quantumExpired) {
-                    // Fin de Quantum para Cola 0 (RR)
+                    // CORRECCIÓN CRÍTICA: Fin de Quantum para Cola 0 (RR)
                     
-                    // Mover el proceso al final de la cola (simulado re-encolando)
-                    const tempProcess = currentProcess;
-                    runningProcesses = runningProcesses.filter(p => p.id !== currentProcess.id);
-                    runningProcesses.push(tempProcess);
+                    // 1. Encontrar el índice del proceso expropiado
+                    const index = runningProcesses.findIndex(p => p.id === currentProcess.id);
+
+                    if (index !== -1) {
+                        // 2. Mover el proceso al final de la lista de procesos activos
+                        const tempProcess = runningProcesses.splice(index, 1)[0];
+                        runningProcesses.push(tempProcess);
+                    }
                     
                     currentProcess = null; // Fuerza el cambio de contexto
                     timeInQuantum = 0;
@@ -581,7 +599,7 @@
             const queuesHTML = { 0: '', 1: '', 2: '' };
             
             // Re-filtrar para asegurar el orden (RR por ID, FCFS por Arrival)
-            const queue0 = runningProcesses.filter(p => p.queue === 0).sort((a, b) => a.id - b.id);
+            const queue0 = runningProcesses.filter(p => p.queue === 0);
             const queue1 = runningProcesses.filter(p => p.queue === 1).sort((a, b) => a.arrival - b.arrival);
             const queue2 = runningProcesses.filter(p => p.queue === 2).sort((a, b) => a.arrival - b.arrival);
 
@@ -602,7 +620,7 @@
         }
 
         /**
-         * Dibuja un bloque en el Gráfico de Gantt.
+         * Dibuja un bloque en el Gráfico de Gantt, consolidando si es el mismo proceso.
          */
         function drawGanttBlock(process, startTime, duration) {
             const ganttBarWrapper = document.querySelector('.gantt-bar-wrapper');
@@ -610,28 +628,26 @@
             
             const color = process ? process.color : '#9ca3af'; // Gris para CPU Inactiva (IDLE)
             const name = process ? process.name : 'IDLE';
+            const blockId = process ? process.id.toString() : 'IDLE';
 
-            // *** CORRECCIÓN CRÍTICA: Aumentar el ancho de los bloques para legibilidad ***
-            const blockWidth = 40; // 40px por unidad de tiempo (antes 20)
-            // *** FIN DE CORRECCIÓN ***
-            
-            // Obtenemos el último bloque (si existe)
+            const blockWidth = 40; // 40px por unidad de tiempo
             const lastBlock = ganttBarWrapper.lastChild;
 
-            if (lastBlock && lastBlock.dataset.processId === (process ? process.id.toString() : 'IDLE')) {
-                // Consolidar: aumentar el ancho del bloque anterior
+            // --- Lógica de Consolidación ---
+            if (lastBlock && lastBlock.dataset.processId === blockId) {
+                // Si el último bloque es el mismo proceso (o IDLE), lo extendemos
                 const currentWidth = parseFloat(lastBlock.style.width.replace('px', ''));
                 lastBlock.style.width = `${currentWidth + blockWidth}px`;
                 lastBlock.title = `${name} | T: ${parseFloat(lastBlock.dataset.startTime)} - ${startTime + duration}`;
             } else {
-                // Nuevo bloque
+                // Nuevo bloque (Cambio de Contexto)
                 const block = document.createElement('div');
                 block.className = 'gantt-block';
                 block.textContent = name;
                 block.style.backgroundColor = color;
                 block.style.width = `${blockWidth}px`; 
                 block.title = `${name} | T: ${startTime} - ${startTime + duration}`;
-                block.dataset.processId = process ? process.id.toString() : 'IDLE'; // Convertir ID a string para consistencia
+                block.dataset.processId = blockId;
                 block.dataset.startTime = startTime;
 
                 ganttBarWrapper.appendChild(block);
@@ -640,9 +656,11 @@
                 const timeLabel = document.createElement('span');
                 timeLabel.className = 'time-label';
                 timeLabel.textContent = startTime;
-                timeLabel.style.left = `${ganttBarWrapper.scrollWidth - blockWidth}px`; // Ajuste al inicio del nuevo bloque
+                // La marca de tiempo se coloca al inicio del bloque que acaba de comenzar
+                timeLabel.style.left = `${ganttBarWrapper.scrollWidth - blockWidth}px`; 
                 timeline.appendChild(timeLabel);
             }
+            // --- Fin de Lógica de Consolidación ---
             
             // Asegurar que el scroll esté al final
             ganttBarWrapper.parentElement.scrollLeft = ganttBarWrapper.scrollWidth;
