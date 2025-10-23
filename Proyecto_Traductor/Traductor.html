@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeTranslate AI - Traductor de Código</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">&#60;/&#62;</div>
+                <h1>CodeTranslate AI</h1>
+            </div>
+            <p class="subtitle">Traduce código entre lenguajes de programación usando el modelo de inteligencia artificial de OpenIA</p>
+        </header>
+        
+        <main>
+            <div class="translator-container">
+                <!-- Panel de código fuente -->
+                <div class="code-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Código Fuente</div>
+                        <div class="custom-select">
+                            <select class="language-selector" id="source-language">
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="cpp">C++</option>
+                                <option value="csharp">C#</option>
+                                <option value="php">PHP</option>
+                                <option value="ruby">Ruby</option>
+                            </select>
+                            <div class="selected-icon" id="source-icon">🐍</div>
+                        </div>
+                    </div>
+                    <textarea class="code-area" id="source-code" placeholder="Pega tu código aquí..."># Ejemplo de código en Python
+def factorial(n):
+    if n == 0:
+        return 1
+    else:
+        return n * factorial(n-1)
+
+num = 5
+print(f"El factorial de {num} es {factorial(num)}")</textarea>
+                    <div class="panel-footer">
+                        <button class="action-btn secondary" id="clear-source">
+                            <span>🗑️</span> Limpiar
+                        </button>
+                        <button class="action-btn secondary" id="paste-source">
+                            <span>📋</span> Pegar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Panel de código traducido -->
+                <div class="code-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Código Traducido <span class="ai-badge">AI</span></div>
+                        <div class="custom-select">
+                            <select class="language-selector" id="target-language">
+                                <option value="java">Java</option>
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="cpp">C++</option>
+                                <option value="csharp">C#</option>
+                                <option value="php">PHP</option>
+                                <option value="ruby">Ruby</option>
+                            </select>
+                            <div class="selected-icon" id="target-icon">☕</div>
+                        </div>
+                    </div>
+                    <textarea class="code-area" id="target-code" placeholder="El código traducido aparecerá aquí..." readonly></textarea>
+                    <div class="panel-footer">
+                        <button class="action-btn secondary" id="clear-target">
+                            <span>🗑️</span> Limpiar
+                        </button>
+                        <button class="action-btn" id="copy-target">
+                            <span>📄</span> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de traducción -->
+            <div class="controls">
+                <button class="translate-btn" id="translate-btn">
+                    <span>🔄</span> Traducir Código
+                </button>
+            </div>
+            
+            <!-- Sección de características -->
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">IA Avanzada</h3>
+                    <p class="feature-desc">Utiliza modelos de IA de última generación para traducciones precisas y funcionales.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Rápido y Eficiente</h3>
+                    <p class="feature-desc">Obtén traducciones en segundos, optimizadas para mantener la lógica original.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 class="feature-title">Múltiples Lenguajes</h3>
+                    <p class="feature-desc">Soporte para los lenguajes de programación más populares del mercado.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Código Seguro</h3>
+                    <p class="feature-desc">Tu código no se almacena y las conexiones están cifradas para mayor seguridad.</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>CodeTranslate AI - Proyecto de Programación Web &copy; 2023</p>
+        </footer>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/scrips.js"></script>
+</body>
+</html>
